@@ -1,19 +1,22 @@
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); //affiche "Connexion..." pendant que la requête est en cours
+  const [serverError, setServerError] = useState(""); //affiche les erreurs venant du serveur (ex: mauvais mot de passe)
+  const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
-
     if (!email) {
       newErrors.email = "L'email est obligatoire";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Format email invalide";
     }
-
     if (!password) {
       newErrors.password = "Le mot de passe est obligatoire";
     } else if (password.length < 8) {
@@ -27,18 +30,48 @@ function Login() {
     } else if (!/[!@#$%^&*]/.test(password)) {
       newErrors.password = "Au moins un caractère spécial (!@#$%^&*)";
     }
-
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    //async/await permet d'attendre la réponse sans bloquer l'interface.
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
-      //Object.Keys fonction prédéfinie prend un objet et retourne un tableau contenant toutes ses clés.
       setErrors(newErrors);
-    } else {
-      setErrors({});
-      alert("Connexion réussie !");
+      return;
+    }
+
+    setLoading(true);
+    setServerError("");
+
+    try {
+      const response = await axios.post("http://localhost:8000/api/login", {
+        email,
+        password,
+      });
+
+      const { token, role } = response.data;
+
+      // Sauvegarder le token
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+
+      // Rediriger selon le rôle
+      if (role === "Administrateur") {
+        navigate("/admin/dashboard");
+      } else if (role === "Analyste Business") {
+        navigate("/business/dashboard");
+      } else if (role === "Analyste Opérationnel") {
+        navigate("/operationnel/dashboard");
+      } 
+    } catch (error) {
+      if (error.response?.status === 401) {
+        setServerError("Email ou mot de passe incorrect");
+      } else {
+        setServerError("Erreur de connexion au serveur");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,6 +123,13 @@ function Login() {
           <div className="flex-1 h-px bg-gray-200"></div>
         </div>
 
+        {/* Erreur serveur */}
+        {serverError && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-4">
+            {serverError}
+          </div>
+        )}
+
         {/* Email */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-600 mb-1.5">
@@ -102,7 +142,7 @@ function Login() {
             onChange={(e) => setEmail(e.target.value)}
             className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none ${errors.email ? "border-red-400" : "border-gray-200 focus:border-blue-500"}`}
           />
-          {errors.email && ( //si il y a une erreur affiche le message sinin n'affiche rien 
+          {errors.email && (
             <p className="text-red-500 text-xs mt-1">{errors.email}</p>
           )}
         </div>
@@ -122,18 +162,16 @@ function Login() {
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password}</p>
           )}
-          <p className="text-xs text-gray-400 mt-1">
-            Min 8 caractères, majuscule, minuscule, chiffre et caractère spécial
-          </p>
         </div>
 
         {/* Bouton */}
         <button
           onClick={handleSubmit}
+          disabled={loading}
           style={{ backgroundColor: "#0066CC" }}
-          className="w-full text-white rounded-lg py-2.5 text-sm font-medium hover:opacity-90"
+          className="w-full text-white rounded-lg py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
         >
-          Se connecter
+          {loading ? "Connexion..." : "Se connecter"}
         </button>
       </div>
     </div>
