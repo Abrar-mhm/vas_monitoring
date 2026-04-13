@@ -58,7 +58,7 @@ function Login() {
 
       // Rediriger selon le rôle
       if (role === "Administrateur") {
-        navigate("/admin/dashboard");
+        navigate("/admin/users");
       } else if (role === "Analyste Business") {
         navigate("/business/dashboard");
       } else if (role === "Analyste Opérationnel") {

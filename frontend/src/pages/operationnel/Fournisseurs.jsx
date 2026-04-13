@@ -1,124 +1,63 @@
 import { useState } from "react";
-import Sidebar from "../../components/Sidebar";
 import { useTheme } from "../../context/ThemeContext";
+import SidebarOperationnel from "../../components/SidebarOperationnel";
 
-const initialUsers = [
+const initialFournisseurs = [
   {
     id: 1,
-    name: "Mohamed Ben Ali",
-    email: "m.benali@tunisietelecom.tn",
-    role: "Analyste Business",
-    statut: "actif",
-    created_at: "2026-02-15",
-    telephone: "98765432",
-    date_naissance: "1990-07-22",
-    poste: "Analyste Business",
-    adresse: "Sfax, Tunisie",
+    provider_name: "TOPNET",
+    nationalite: "Tunisienne",
+    id_fiscale: "1234567A",
+    adresse: "Tunis, Tunisie",
   },
   {
     id: 2,
-    name: "Fatma Trabelsi",
-    email: "f.trabelsi@tunisietelecom.tn",
-    role: "Analyste Opérationnel",
-    statut: "inactif",
-    created_at: "2026-03-10",
-    telephone: "55987654",
-    date_naissance: "1992-11-05",
-    poste: "Analyste Opérationnel",
-    adresse: "Sousse, Tunisie",
+    provider_name: "ORANGE",
+    nationalite: "Française",
+    id_fiscale: "7654321B",
+    adresse: "Paris, France",
+  },
+  {
+    id: 3,
+    provider_name: "HUAWEI",
+    nationalite: "Chinoise",
+    id_fiscale: "9876543C",
+    adresse: "Shenzhen, Chine",
   },
 ];
 
-function Users() {
+function Fournisseurs() {
   const { dark } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [users, setUsers] = useState(initialUsers);
+  const [fournisseurs, setFournisseurs] = useState(initialFournisseurs);
   const [search, setSearch] = useState("");
   const [modalAdd, setModalAdd] = useState(false);
   const [modalEdit, setModalEdit] = useState(false);
   const [modalDelete, setModalDelete] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedFournisseur, setSelectedFournisseur] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "Analyste Business",
-    telephone: "",
-    date_naissance: "",
-    poste: "",
+    provider_name: "",
+    nationalite: "",
+    id_fiscale: "",
     adresse: "",
   });
-  const [triColonne, setTriColonne] = useState(null);
-  const [triDirection, setTriDirection] = useState("asc");
 
   const validate = () => {
     const errors = {};
-    if (!form.name || form.name.length < 3)
-      errors.name = "Minimum 3 caractères";
-    if (!form.email || !/\S+@\S+\.\S+/.test(form.email))
-      errors.email = "Email invalide";
-    if (!form.password || form.password.length < 8)
-      errors.password = "Minimum 8 caractères";
-    else if (!/[A-Z]/.test(form.password))
-      errors.password = "Au moins une majuscule";
-    else if (!/[a-z]/.test(form.password))
-      errors.password = "Au moins une minuscule";
-    else if (!/[0-9]/.test(form.password))
-      errors.password = "Au moins un chiffre";
-    else if (!/[!@#$%^&*]/.test(form.password))
-      errors.password = "Au moins un caractère spécial";
-    if (!form.telephone || !/^\d{8}$/.test(form.telephone))
-      errors.telephone = "8 chiffres requis";
-    if (!form.date_naissance) errors.date_naissance = "Date obligatoire";
-    if (!form.poste) errors.poste = "Poste obligatoire";
+    if (!form.provider_name || form.provider_name.length < 2)
+      errors.provider_name = "Minimum 2 caractères";
+    if (!form.nationalite) errors.nationalite = "Nationalité obligatoire";
+    if (!form.id_fiscale) errors.id_fiscale = "ID fiscale obligatoire";
     if (!form.adresse) errors.adresse = "Adresse obligatoire";
     return errors;
   };
 
-  const filtered = users
-    .filter(
-      (u) =>
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase()),
-    )
-    .sort((a, b) => {
-      if (!triColonne) return 0;
-      const valA = String(a[triColonne]).toLowerCase();
-      const valB = String(b[triColonne]).toLowerCase();
-      return triDirection === "asc"
-        ? valA.localeCompare(valB)
-        : valB.localeCompare(valA);
-    });
-
-  const handleTri = (colonne) => {
-    if (triColonne === colonne) {
-      setTriDirection(triDirection === "asc" ? "desc" : "asc");
-    } else {
-      setTriColonne(colonne);
-      setTriDirection("asc");
-    }
-  };
-
-  const triIcon = (colonne) => {
-    if (triColonne !== colonne) return " ↕";
-    return triDirection === "asc" ? " ↑" : " ↓";
-  };
-
-  const getAvatar = (name) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
-  const avatarColor = (role) => {
-    if (role === "Administrateur") return "bg-blue-600";
-    if (role === "Analyste Business") return "bg-green-500";
-    return "bg-yellow-500";
-  };
+  const filtered = fournisseurs.filter(
+    (f) =>
+      f.provider_name.toLowerCase().includes(search.toLowerCase()) ||
+      f.id_fiscale.toLowerCase().includes(search.toLowerCase()),
+  );
 
   const handleAdd = () => {
     const errors = validate();
@@ -126,23 +65,11 @@ function Users() {
       setFormErrors(errors);
       return;
     }
-    setUsers([
-      ...users,
-      {
-        id: Date.now(),
-        ...form,
-        statut: "actif",
-        created_at: new Date().toISOString().split("T")[0],
-      },
-    ]);
+    setFournisseurs([...fournisseurs, { id: Date.now(), ...form }]);
     setForm({
-      name: "",
-      email: "",
-      password: "",
-      role: "Analyste Business",
-      telephone: "",
-      date_naissance: "",
-      poste: "",
+      provider_name: "",
+      nationalite: "",
+      id_fiscale: "",
       adresse: "",
     });
     setFormErrors({});
@@ -150,48 +77,43 @@ function Users() {
   };
 
   const handleEdit = () => {
-    setUsers(
-      users.map((u) => (u.id === selectedUser.id ? { ...u, ...form } : u)),
+    setFournisseurs(
+      fournisseurs.map((f) =>
+        f.id === selectedFournisseur.id ? { ...f, ...form } : f,
+      ),
     );
     setModalEdit(false);
   };
 
   const handleDelete = () => {
-    setUsers(users.filter((u) => u.id !== selectedUser.id));
+    setFournisseurs(
+      fournisseurs.filter((f) => f.id !== selectedFournisseur.id),
+    );
     setModalDelete(false);
   };
 
-  const openEdit = (user) => {
-    setSelectedUser(user);
+  const openEdit = (fournisseur) => {
+    setSelectedFournisseur(fournisseur);
     setForm({
-      name: user.name,
-      email: user.email,
-      password: "",
-      role: user.role,
-      telephone: user.telephone || "",
-      date_naissance: user.date_naissance || "",
-      poste: user.poste || "",
-      adresse: user.adresse || "",
+      provider_name: fournisseur.provider_name,
+      nationalite: fournisseur.nationalite,
+      id_fiscale: fournisseur.id_fiscale,
+      adresse: fournisseur.adresse,
     });
     setModalEdit(true);
   };
 
-  const openDelete = (user) => {
-    setSelectedUser(user);
+  const openDelete = (fournisseur) => {
+    setSelectedFournisseur(fournisseur);
     setModalDelete(true);
-  };
-
-  const roleBadge = (role) => {
-    if (role === "Administrateur") return "bg-blue-100 text-blue-800";
-    if (role === "Analyste Business") return "bg-green-100 text-green-800";
-    return "bg-yellow-100 text-yellow-800";
   };
 
   return (
     <div
       className={`flex h-screen ${dark ? "bg-slate-900 text-slate-100" : "bg-gray-100 text-gray-800"}`}
     >
-      {sidebarOpen && <Sidebar />}
+      {sidebarOpen && <SidebarOperationnel />}
+
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-3 flex items-center justify-between">
@@ -214,10 +136,10 @@ function Users() {
           </button>
           <div>
             <h2 className="text-sm font-medium text-gray-800 dark:text-slate-100">
-              Gestion des utilisateurs
+              Gestion des Fournisseurs
             </h2>
             <p className="text-xs text-gray-400 dark:text-slate-400">
-              {users.length} utilisateurs enregistrés
+              {fournisseurs.length} fournisseurs enregistrés
             </p>
           </div>
           <button
@@ -239,44 +161,36 @@ function Users() {
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Ajouter utilisateur
+            Ajouter fournisseur
           </button>
         </div>
 
         <div className="p-5 flex-1 overflow-auto">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
               <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-                Total utilisateurs
+                Total fournisseurs
               </p>
               <p className="text-2xl font-medium text-blue-600">
-                {users.length}
+                {fournisseurs.length}
               </p>
             </div>
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
               <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-                Analystes Business
+                Nationalités
               </p>
               <p className="text-2xl font-medium text-green-500">
-                {users.filter((u) => u.role === "Analyste Business").length}
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
-              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-                Analystes Opérationnels
-              </p>
-              <p className="text-2xl font-medium text-yellow-500">
-                {users.filter((u) => u.role === "Analyste Opérationnel").length}
+                {new Set(fournisseurs.map((f) => f.nationalite)).size}
               </p>
             </div>
           </div>
 
-          {/* Table */}
+          {/* Tableau */}
           <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
             <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 dark:border-slate-700">
               <p className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                Liste des utilisateurs
+                Liste des fournisseurs
               </p>
               <input
                 type="text"
@@ -289,76 +203,45 @@ function Users() {
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-slate-900 text-xs text-gray-400 dark:text-slate-400">
-                  <th
-                    className="text-left px-4 py-3 font-medium cursor-pointer"
-                    onClick={() => handleTri("name")}
-                  >
-                    Nom{triIcon("name")}
+                  <th className="text-left px-4 py-3 font-medium">ID</th>
+                  <th className="text-left px-4 py-3 font-medium">
+                    Nom fournisseur
                   </th>
-                  <th
-                    className="text-left px-4 py-3 font-medium cursor-pointer"
-                    onClick={() => handleTri("email")}
-                  >
-                    Email{triIcon("email")}
+                  <th className="text-left px-4 py-3 font-medium">
+                    Nationalité
                   </th>
-                  <th
-                    className="text-left px-4 py-3 font-medium cursor-pointer"
-                    onClick={() => handleTri("role")}
-                  >
-                    Rôle{triIcon("role")}
+                  <th className="text-left px-4 py-3 font-medium">
+                    ID Fiscale
                   </th>
-                  <th className="text-left px-4 py-3 font-medium">Statut</th>
-                  <th
-                    className="text-left px-4 py-3 font-medium cursor-pointer"
-                    onClick={() => handleTri("created_at")}
-                  >
-                    Créé le{triIcon("created_at")}
-                  </th>
+                  <th className="text-left px-4 py-3 font-medium">Adresse</th>
                   <th className="text-left px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((user) => (
+                {filtered.map((f, index) => (
                   <tr
-                    key={user.id}
+                    key={f.id}
                     className="border-t border-gray-100 dark:border-slate-700"
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium min-w-7 ${avatarColor(user.role)}`}
-                        >
-                          {getAvatar(user.name)}
-                        </div>
-                        <span className="text-gray-800 dark:text-slate-200">
-                          {user.name}
-                        </span>
-                      </div>
+                    <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+                      {index + 1}
                     </td>
-                    <td className="px-4 py-3 text-gray-400 dark:text-slate-400 text-xs">
-                      {user.email}
+                    <td className="px-4 py-3 text-xs font-medium text-gray-700 dark:text-slate-200">
+                      {f.provider_name}
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${roleBadge(user.role)}`}
-                      >
-                        {user.role}
-                      </span>
+                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                      {f.nationalite}
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${user.statut === "actif" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                      >
-                        {user.statut}
-                      </span>
+                    <td className="px-4 py-3 text-xs font-mono text-blue-600">
+                      {f.id_fiscale}
                     </td>
-                    <td className="px-4 py-3 text-gray-400 dark:text-slate-400 text-xs">
-                      {user.created_at}
+                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                      {f.adresse}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => openEdit(user)}
+                          onClick={() => openEdit(f)}
                           className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
                         >
                           <svg
@@ -375,7 +258,7 @@ function Users() {
                           Modifier
                         </button>
                         <button
-                          onClick={() => openDelete(user)}
+                          onClick={() => openDelete(f)}
                           className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100"
                         >
                           <svg
@@ -409,10 +292,10 @@ function Users() {
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-[550px] border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-96 border border-gray-200 dark:border-slate-700">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-medium dark:text-slate-100">
-                Ajouter un utilisateur
+                Ajouter un fournisseur
               </h3>
               <button
                 onClick={() => setModalAdd(false)}
@@ -421,18 +304,16 @@ function Users() {
                 ×
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               {[
-                { label: "Nom complet", key: "name", type: "text" },
-                { label: "Email", key: "email", type: "email" },
-                { label: "Mot de passe", key: "password", type: "password" },
-                { label: "Téléphone", key: "telephone", type: "text" },
                 {
-                  label: "Date de naissance",
-                  key: "date_naissance",
-                  type: "date",
+                  label: "Nom fournisseur",
+                  key: "provider_name",
+                  type: "text",
                 },
-                { label: "Poste", key: "poste", type: "text" },
+                { label: "Nationalité", key: "nationalite", type: "text" },
+                { label: "ID Fiscale", key: "id_fiscale", type: "text" },
+                { label: "Adresse", key: "adresse", type: "text" },
               ].map((field) => (
                 <div key={field.key}>
                   <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
@@ -453,42 +334,8 @@ function Users() {
                   )}
                 </div>
               ))}
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
-                  Adresse
-                </label>
-                <input
-                  type="text"
-                  value={form.adresse}
-                  onChange={(e) =>
-                    setForm({ ...form, adresse: e.target.value })
-                  }
-                  className={`w-full text-xs px-3 py-2 rounded-lg border bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none ${formErrors.adresse ? "border-red-400" : "border-gray-200 dark:border-slate-600"}`}
-                />
-                {formErrors.adresse && (
-                  <p className="text-red-500 text-xs mt-0.5">
-                    {formErrors.adresse}
-                  </p>
-                )}
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
-                  Rôle
-                </label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none"
-                >
-                  <option>Analyste Business</option>
-                  <option>Analyste Opérationnel</option>
-                </select>
-              </div>
             </div>
-            <div className="bg-blue-50 dark:bg-slate-700 rounded-lg p-2.5 mt-3 mb-4 text-xs text-blue-600 dark:text-blue-300">
-              📧 Les identifiants seront envoyés automatiquement par email.
-            </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-4">
               <button
                 onClick={() => setModalAdd(false)}
                 className="flex-1 py-2 text-xs rounded-lg border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300"
@@ -500,7 +347,7 @@ function Users() {
                 className="flex-1 py-2 text-xs rounded-lg text-white"
                 style={{ background: "#0066CC" }}
               >
-                Créer & Envoyer
+                Ajouter
               </button>
             </div>
           </div>
@@ -513,10 +360,10 @@ function Users() {
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-[550px] border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-96 border border-gray-200 dark:border-slate-700">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-medium dark:text-slate-100">
-                Modifier l'utilisateur
+                Modifier le fournisseur
               </h3>
               <button
                 onClick={() => setModalEdit(false)}
@@ -525,22 +372,16 @@ function Users() {
                 ×
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               {[
-                { label: "Nom complet", key: "name", type: "text" },
-                { label: "Email", key: "email", type: "email" },
                 {
-                  label: "Nouveau mot de passe",
-                  key: "password",
-                  type: "password",
+                  label: "Nom fournisseur",
+                  key: "provider_name",
+                  type: "text",
                 },
-                { label: "Téléphone", key: "telephone", type: "text" },
-                {
-                  label: "Date de naissance",
-                  key: "date_naissance",
-                  type: "date",
-                },
-                { label: "Poste", key: "poste", type: "text" },
+                { label: "Nationalité", key: "nationalite", type: "text" },
+                { label: "ID Fiscale", key: "id_fiscale", type: "text" },
+                { label: "Adresse", key: "adresse", type: "text" },
               ].map((field) => (
                 <div key={field.key}>
                   <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
@@ -549,11 +390,6 @@ function Users() {
                   <input
                     type={field.type}
                     value={form[field.key]}
-                    placeholder={
-                      field.key === "password"
-                        ? "Laisser vide pour ne pas changer"
-                        : ""
-                    }
                     onChange={(e) =>
                       setForm({ ...form, [field.key]: e.target.value })
                     }
@@ -561,33 +397,6 @@ function Users() {
                   />
                 </div>
               ))}
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
-                  Adresse
-                </label>
-                <input
-                  type="text"
-                  value={form.adresse}
-                  onChange={(e) =>
-                    setForm({ ...form, adresse: e.target.value })
-                  }
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
-                  Rôle
-                </label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none"
-                >
-                  <option>Administrateur</option>
-                  <option>Analyste Business</option>
-                  <option>Analyste Opérationnel</option>
-                </select>
-              </div>
             </div>
             <div className="flex gap-2 mt-4">
               <button
@@ -631,10 +440,10 @@ function Users() {
               </svg>
             </div>
             <h3 className="text-sm font-medium mb-1 dark:text-slate-100">
-              Supprimer l'utilisateur ?
+              Supprimer le fournisseur ?
             </h3>
             <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-              {selectedUser?.name}
+              {selectedFournisseur?.provider_name}
             </p>
             <p className="text-xs text-red-500 mb-4">
               Cette action est irréversible.
@@ -660,4 +469,4 @@ function Users() {
   );
 }
 
-export default Users;
+export default Fournisseurs;

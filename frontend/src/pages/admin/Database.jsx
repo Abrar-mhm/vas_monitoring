@@ -7,26 +7,31 @@ function Database() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [saved, setSaved] = useState(false);
 
-  const dbInfo = {
+  const [form, setForm] = useState({
     host: "localhost",
     port: "1521",
     service: "XEPDB1",
     utilisateur: "vas_user",
+    password: "",
     version: "Oracle XE 21c",
-    statut: "connectée",
+  });
+
+  const handleTest = () => {
+    setTesting(true);
+    setTestResult(null);
+    setTimeout(() => {
+      setTesting(false);
+      const resultat = Math.random() > 0.3 ? "success" : "error";
+      setTestResult(resultat);
+    }, 2000);
   };
 
- const handleTest = () => {
-   setTesting(true);
-   setTestResult(null);
-   setTimeout(() => {
-     setTesting(false);
-     // Simule aléatoirement succès ou échec
-     const resultat = Math.random() > 0.3 ? "success" : "error";
-     setTestResult(resultat);
-   }, 2000);
- };
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
 
   return (
     <div
@@ -59,31 +64,14 @@ function Database() {
               Gestion Base de données
             </h2>
             <p className="text-xs text-gray-400 dark:text-slate-400">
-              Oracle XE 21c — XEPDB1
+              Configuration Oracle XE
             </p>
           </div>
-          <button
-            onClick={handleTest}
-            disabled={testing}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white disabled:opacity-50"
-            style={{ background: "#0066CC" }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="23 4 23 10 17 10" />
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-            </svg>
-            {testing ? "Test en cours..." : "Tester la connexion"}
-          </button>
+          <div className="w-10" />
         </div>
 
         <div className="p-5 flex-1 overflow-auto">
+          {/* Message test */}
           {testResult === "success" && (
             <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -93,28 +81,32 @@ function Database() {
           {testResult === "error" && (
             <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-500" />
-              Connexion Oracle échouée ! Vérifiez les paramètres de connexion.
+              Connexion Oracle échouée ! Vérifiez les paramètres.
             </div>
           )}
 
           {/* Statut */}
-          <div className="grid grid-cols-1 gap-3 mb-5">
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <div>
-                <p className="text-xs text-gray-400 dark:text-slate-400">
-                  Statut de la connexion
-                </p>
-                <p className="text-sm font-medium text-green-500">
-                  Base de données connectée
-                </p>
-              </div>
+          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 flex items-center gap-3 mb-5">
+            <div
+              className={`w-3 h-3 rounded-full ${testResult === "error" ? "bg-red-500" : "bg-green-500"}`}
+            />
+            <div>
+              <p className="text-xs text-gray-400 dark:text-slate-400">
+                Statut de la connexion
+              </p>
+              <p
+                className={`text-sm font-medium ${testResult === "error" ? "text-red-500" : "text-green-500"}`}
+              >
+                {testResult === "error"
+                  ? "Connexion échouée"
+                  : "Base de données connectée"}
+              </p>
             </div>
           </div>
 
-          {/* Informations connexion */}
-          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-4">
+          {/* Formulaire */}
+          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-5">
               <svg
                 width="16"
                 height="16"
@@ -127,29 +119,102 @@ function Database() {
                 <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
                 <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
               </svg>
-              <p className="text-sm font-medium">Informations connexion</p>
+              <p className="text-sm font-medium">Paramètres de connexion</p>
             </div>
-            <div className="space-y-3">
+
+            <div className="grid grid-cols-2 gap-4">
               {[
-                { label: "Hôte", value: dbInfo.host },
-                { label: "Port", value: dbInfo.port },
-                { label: "Service", value: dbInfo.service },
-                { label: "Utilisateur", value: dbInfo.utilisateur },
-                { label: "Version", value: dbInfo.version },
-                { label: "Statut", value: dbInfo.statut },
+                { label: "Hôte", key: "host", placeholder: "localhost" },
+                { label: "Port", key: "port", placeholder: "1521" },
+                {
+                  label: "Service / SID",
+                  key: "service",
+                  placeholder: "XEPDB1",
+                },
+                {
+                  label: "Utilisateur",
+                  key: "utilisateur",
+                  placeholder: "vas_user",
+                },
+                {
+                  label: "Version",
+                  key: "version",
+                  placeholder: "Oracle XE 21c",
+                },
               ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-slate-700 last:border-0"
-                >
-                  <span className="text-xs text-gray-400 dark:text-slate-400">
+                <div key={item.key}>
+                  <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
                     {item.label}
-                  </span>
-                  <span className="text-xs font-medium text-gray-700 dark:text-slate-200 font-mono">
-                    {item.value}
-                  </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form[item.key]}
+                    placeholder={item.placeholder}
+                    onChange={(e) =>
+                      setForm({ ...form, [item.key]: e.target.value })
+                    }
+                    className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none font-mono"
+                  />
                 </div>
               ))}
+              <div>
+                <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
+                  Mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  placeholder="••••••••"
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none"
+                />
+              </div>
+              <div className="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100 dark:border-slate-700">
+                {saved && (
+                  <span className="text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200 flex items-center">
+                    ✓ Enregistré
+                  </span>
+                )}
+                <button
+                  onClick={handleTest}
+                  disabled={testing}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 disabled:opacity-50"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                  {testing ? "Test en cours..." : "Tester la connexion"}
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs text-white"
+                  style={{ background: "#0066CC" }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  Enregistrer
+                </button>
+              </div>
             </div>
           </div>
         </div>
