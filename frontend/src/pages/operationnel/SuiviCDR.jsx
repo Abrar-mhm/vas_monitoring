@@ -2,89 +2,34 @@ import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import SidebarOperationnel from "../../components/SidebarOperationnel";
 
-const initialSuivi = {
-  mmg: [
-    {
-      id: 1,
-      fichier: "MMG_CDR_20260407.dsv",
-      date: "07/04/2026",
-      loading: "Terminé",
-      agregation: "Terminé",
-      suppression: "Terminé",
-    },
-    {
-      id: 2,
-      fichier: "MMG_CDR_20260406.dsv",
-      date: "06/04/2026",
-      loading: "Terminé",
-      agregation: "Terminé",
-      suppression: "En cours",
-    },
-    {
-      id: 3,
-      fichier: "MMG_CDR_20260405.dsv",
-      date: "05/04/2026",
-      loading: "Terminé",
-      agregation: "En cours",
-      suppression: "En attente",
-    },
-    {
-      id: 4,
-      fichier: "MMG_CDR_20260404.dsv",
-      date: "04/04/2026",
-      loading: "Échoué",
-      agregation: "En attente",
-      suppression: "En attente",
-    },
-  ],
-  occ: [
-    {
-      id: 1,
-      fichier: "OCC_CDR_20260407.xlsx",
-      date: "07/04/2026",
-      loading: "Terminé",
-      agregation: "Terminé",
-      suppression: "Terminé",
-    },
-    {
-      id: 2,
-      fichier: "OCC_CDR_20260406.xlsx",
-      date: "06/04/2026",
-      loading: "Terminé",
-      agregation: "Terminé",
-      suppression: "En cours",
-    },
-    {
-      id: 3,
-      fichier: "OCC_CDR_20260405.xlsx",
-      date: "05/04/2026",
-      loading: "En cours",
-      agregation: "En attente",
-      suppression: "En attente",
-    },
-    {
-      id: 4,
-      fichier: "OCC_CDR_20260404.xlsx",
-      date: "04/04/2026",
-      loading: "Échoué",
-      agregation: "En attente",
-      suppression: "En attente",
-    },
-  ],
-};
+const initialJobs = [
+  { id: 1, flux: "MMG", job: "Detail", etat: "inprogress" },
+  { id: 2, flux: "MMG", job: "AGG", etat: "Error" },
+  { id: 3, flux: "MMG", job: "Cleaning", etat: "Stoped" },
+  { id: 4, flux: "OCC", job: "Detail", etat: "inprogress" },
+  { id: 5, flux: "OCC", job: "AGG", etat: "Stoped" },
+  { id: 6, flux: "OCC", job: "Cleaning", etat: "Stoped" },
+];
 
 function SuiviCDR() {
   const { dark } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [onglet, setOnglet] = useState("mmg");
-  const suivi = initialSuivi[onglet];
+  const [jobs, setJobs] = useState(initialJobs);
 
-  const statutBadge = (statut) => {
-    if (statut === "Terminé") return "bg-green-100 text-green-800";
-    if (statut === "En cours") return "bg-blue-100 text-blue-800";
-    if (statut === "Échoué") return "bg-red-100 text-red-800";
-    return "bg-gray-100 text-gray-500";
+  const etatBadge = (etat) => {
+    if (etat === "inprogress") return "bg-blue-100 text-blue-800";
+    if (etat === "Error") return "bg-red-100 text-red-800";
+    if (etat === "Stoped") return "bg-gray-100 text-gray-600";
+    if (etat === "Done") return "bg-green-100 text-green-800";
+    return "bg-gray-100 text-gray-600";
   };
+
+  const handleStart = (id) => {
+    setJobs(jobs.map((j) => (j.id === id ? { ...j, etat: "inprogress" } : j)));
+  };
+
+  const mmgJobs = jobs.filter((j) => j.flux === "MMG");
+  const occJobs = jobs.filter((j) => j.flux === "OCC");
 
   return (
     <div
@@ -117,7 +62,7 @@ function SuiviCDR() {
               Suivi CDR
             </h2>
             <p className="text-xs text-gray-400 dark:text-slate-400">
-              Loading, agrégation et suppression des CDR
+              Liste des jobs MMG et OCC
             </p>
           </div>
           <div className="w-10" />
@@ -125,117 +70,126 @@ function SuiviCDR() {
 
         <div className="p-5 flex-1 overflow-auto">
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-3 mb-5">
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
-              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-                Total fichiers
-              </p>
-              <p className="text-2xl font-medium text-blue-600">
-                {suivi.length}
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
-              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-                Loading terminé
-              </p>
-              <p className="text-2xl font-medium text-green-500">
-                {suivi.filter((s) => s.loading === "Terminé").length}
-              </p>
-            </div>
+          <div className="grid grid-cols-3 gap-3 mb-5">
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
               <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
                 En cours
               </p>
-              <p className="text-2xl font-medium text-blue-500">
-                {suivi.filter((s) => s.loading === "En cours").length}
+              <p className="text-2xl font-medium text-blue-600">
+                {jobs.filter((j) => j.etat === "inprogress").length}
               </p>
             </div>
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
               <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
-                Échoués
+                Erreurs
               </p>
               <p className="text-2xl font-medium text-red-500">
-                {suivi.filter((s) => s.loading === "Échoué").length}
+                {jobs.filter((j) => j.etat === "Error").length}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
+              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
+                Arrêtés
+              </p>
+              <p className="text-2xl font-medium text-gray-500">
+                {jobs.filter((j) => j.etat === "Stoped").length}
               </p>
             </div>
           </div>
 
-          {/* Onglets MMG / OCC */}
+          {/* Tableau List Job */}
           <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 dark:border-slate-700">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setOnglet("mmg")}
-                  className={`text-xs px-4 py-1.5 rounded-lg border transition-colors ${
-                    onglet === "mmg"
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  CDR MMG
-                </button>
-                <button
-                  onClick={() => setOnglet("occ")}
-                  className={`text-xs px-4 py-1.5 rounded-lg border transition-colors ${
-                    onglet === "occ"
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  CDR OCC
-                </button>
-              </div>
-              <p className="text-xs text-gray-400 dark:text-slate-500">
-                {suivi.length} fichiers
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+              <p className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                List Job
               </p>
             </div>
-
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-slate-900 text-xs text-gray-400 dark:text-slate-400">
-                  <th className="text-left px-4 py-3 font-medium">Fichier</th>
-                  <th className="text-left px-4 py-3 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 font-medium">Loading</th>
-                  <th className="text-left px-4 py-3 font-medium">
-                    Agrégation
-                  </th>
-                  <th className="text-left px-4 py-3 font-medium">
-                    Suppression
-                  </th>
+                  <th className="text-left px-4 py-3 font-medium">Flux</th>
+                  <th className="text-left px-4 py-3 font-medium">Job</th>
+                  <th className="text-left px-4 py-3 font-medium">État</th>
+                  <th className="text-left px-4 py-3 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {suivi.map((s) => (
+                {/* MMG Jobs */}
+                {mmgJobs.map((job, index) => (
                   <tr
-                    key={s.id}
+                    key={job.id}
                     className="border-t border-gray-100 dark:border-slate-700"
                   >
-                    <td className="px-4 py-3 text-xs font-mono text-gray-700 dark:text-slate-200">
-                      {s.fichier}
+                    <td className="px-4 py-3 text-xs font-medium text-gray-700 dark:text-slate-200">
+                      {index === 0 ? (
+                        <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                          MMG
+                        </span>
+                      ) : (
+                        ""
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-400">
-                      {s.date}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${statutBadge(s.loading)}`}
-                      >
-                        {s.loading}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${statutBadge(s.agregation)}`}
-                      >
-                        {s.agregation}
-                      </span>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-slate-200">
+                      {job.job}
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${statutBadge(s.suppression)}`}
+                        className={`text-xs px-2 py-1 rounded-full ${etatBadge(job.etat)}`}
                       >
-                        {s.suppression}
+                        {job.etat}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleStart(job.id)}
+                        className="text-xs px-3 py-1 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                      >
+                        Start
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Séparateur */}
+                <tr className="border-t-2 border-gray-200 dark:border-slate-600">
+                  <td
+                    colSpan="4"
+                    className="px-4 py-1 bg-gray-50 dark:bg-slate-900"
+                  ></td>
+                </tr>
+
+                {/* OCC Jobs */}
+                {occJobs.map((job, index) => (
+                  <tr
+                    key={job.id}
+                    className="border-t border-gray-100 dark:border-slate-700"
+                  >
+                    <td className="px-4 py-3 text-xs font-medium text-gray-700 dark:text-slate-200">
+                      {index === 0 ? (
+                        <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                          OCC
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-slate-200">
+                      {job.job}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${etatBadge(job.etat)}`}
+                      >
+                        {job.etat}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleStart(job.id)}
+                        className="text-xs px-3 py-1 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                      >
+                        Start
+                      </button>
                     </td>
                   </tr>
                 ))}

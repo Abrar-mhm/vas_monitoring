@@ -12,12 +12,15 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'statut',
-    ];
+    'name',
+    'email',
+    'password',
+    'role',
+    'statut',
+    'tel',
+    'direction',
+    'image',
+];
 
     protected $hidden = [
         'password',
@@ -32,9 +35,5 @@ class User extends Authenticatable
         ];
     }
 
-    // Relation avec historique
-    public function historique()
-    {
-        return $this->hasMany(HistoriqueUser::class);
-    }
+    
 }
