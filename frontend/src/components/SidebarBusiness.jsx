@@ -1,6 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
 import { useTheme } from "../context/ThemeContext";
+import api from "../api/axios";
+
 
 function SidebarBusiness() {
   const { dark, toggleDark } = useTheme();
@@ -63,6 +66,38 @@ function SidebarBusiness() {
       ),
     },
   ];
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/logout");
+    } catch (error) {
+      console.error("Erreur déconnexion", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      navigate("/login");
+    }
+  };
+
+  const [profile, setProfile] = useState({
+    name: "Administrateur",
+    email: "admin@tt.tn",
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("/api/profile");
+        setProfile({
+          name: response.data.name || response.data.NAME,
+          email: response.data.email || response.data.EMAIL,
+        });
+      } catch (error) {
+        console.error("Erreur profil", error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
 
   return (
     <div
@@ -113,18 +148,24 @@ function SidebarBusiness() {
         className={`rounded-lg p-2 mb-2 ${dark ? "bg-slate-700" : "bg-gray-50 border border-gray-200"}`}
       >
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-medium min-w-7">
-            AB
+          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium min-w-7">
+            {(profile.name || "AD")
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .substring(0, 2)
+              .toUpperCase()}
           </div>
           <div className="overflow-hidden flex-1">
-            <p className="text-xs font-medium truncate">Analyste Business</p>
+            <p className="text-xs font-medium truncate">{profile.name}</p>
             <p
               className={`text-xs truncate ${dark ? "text-slate-400" : "text-gray-400"}`}
             >
-              business@tt.tn
+              {profile.email}
             </p>
           </div>
           <button
+            onClick={handleLogout}
             title="Déconnexion"
             className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-slate-600 hover:text-red-600"
           >

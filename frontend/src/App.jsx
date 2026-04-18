@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route , Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Users from "./pages/admin/Users";
 import Settings from "./pages/admin/Settings";
@@ -12,6 +12,9 @@ import DashboardBusiness from "./pages/business/Dashboard";
 import Recherche from "./pages/business/Recherche";
 import AlertesBusiness from "./pages/business/Alertes";
 import Fournisseurs from "./pages/operationnel/Fournisseurs";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 
 function App() {
@@ -19,21 +22,23 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/admin/users" element={<Users />} />
-        <Route path="/admin/settings" element={<Settings />} />
-        <Route
-          path="/operationnel/dashboard"
-          element={<DashboardOperationnel />}
-        />
-        <Route path="/operationnel/alertes" element={<Alertes />} />
-        <Route path="/admin/database" element={<Database />} />
-        <Route path="/admin/ftp" element={<FTP />} />
-        <Route path="/operationnel/suivi-cdr" element={<SuiviCDR />} />
-        <Route path="/operationnel/services" element={<Services />} />
-        <Route path="/business/dashboard" element={<DashboardBusiness />} />
-        <Route path="/business/recherche" element={<Recherche />} />
-        <Route path="/business/alertes" element={<AlertesBusiness />} />
-        <Route path="/operationnel/fournisseurs" element={<Fournisseurs />} />
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/admin/users" element={<ProtectedRoute role="Administrateur"><Users /></ProtectedRoute>} />
+        <Route path="/admin/database" element={<ProtectedRoute role="Administrateur"><Database /></ProtectedRoute>} />
+        <Route path="/admin/ftp" element={<ProtectedRoute role="Administrateur"><FTP /></ProtectedRoute>} />
+        <Route path="/admin/settings" element={<ProtectedRoute role="Administrateur"><Settings /></ProtectedRoute>} />
+
+        <Route path="/business/dashboard" element={<ProtectedRoute role="Analyste Business"><DashboardBusiness /></ProtectedRoute>} />
+        <Route path="/business/recherche" element={<ProtectedRoute role="Analyste Business"><Recherche /></ProtectedRoute>} />
+        <Route path="/business/alertes" element={<ProtectedRoute role="Analyste Business"><AlertesBusiness /></ProtectedRoute>} />
+
+        <Route path="/operationnel/dashboard" element={<ProtectedRoute role="Analyste Opérationnel"><DashboardOperationnel /></ProtectedRoute>} />
+        <Route path="/operationnel/alertes" element={<ProtectedRoute role="Analyste Opérationnel"><Alertes /></ProtectedRoute>} />
+        <Route path="/operationnel/suivi-cdr" element={<ProtectedRoute role="Analyste Opérationnel"><SuiviCDR /></ProtectedRoute>} />
+        <Route path="/operationnel/services" element={<ProtectedRoute role="Analyste Opérationnel"><Services /></ProtectedRoute>} />
+        <Route path="/operationnel/fournisseurs" element={<ProtectedRoute role="Analyste Opérationnel"><Fournisseurs /></ProtectedRoute>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   );

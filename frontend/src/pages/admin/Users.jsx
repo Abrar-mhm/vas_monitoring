@@ -30,9 +30,11 @@ function Users() {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const response = await api.get("/api/users");
+      console.log("Users data:", response.data);
       setUsers(response.data);
     } catch (error) {
       console.error("Erreur chargement utilisateurs", error);
@@ -114,8 +116,8 @@ function Users() {
       return;
     }
     try {
-      const response = await api.post("/api/users", form);
-      setUsers([...users, response.data]);
+      await api.post("/api/users", form);
+      await fetchUsers(false);
       setForm({
         name: "",
         email: "",
@@ -128,16 +130,22 @@ function Users() {
       setFormErrors({});
       setModalAdd(false);
     } catch (error) {
+      if (error.response?.status === 422) {
+        const serverErrors = error.response.data.errors;
+        const newErrors = {};
+        if (serverErrors.email) newErrors.email = "Cet email existe déjà";
+        if (serverErrors.tel) newErrors.tel = "Ce téléphone existe déjà";
+        setFormErrors(newErrors);
+      }
       console.error("Erreur ajout utilisateur", error);
     }
   };
 
   const handleEdit = async () => {
     try {
-      const response = await api.put(`/api/users/${selectedUser.id}`, form);
-      setUsers(
-        users.map((u) => (u.id === selectedUser.id ? response.data : u)),
-      );
+      const id = selectedUser.id || selectedUser.ID;
+      await api.put(`/api/users/${id}`, form);
+      await fetchUsers(false);
       setModalEdit(false);
     } catch (error) {
       console.error("Erreur modification utilisateur", error);
@@ -146,8 +154,9 @@ function Users() {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/api/users/${selectedUser.id}`);
-      setUsers(users.filter((u) => u.id !== selectedUser.id));
+      const id = selectedUser.id || selectedUser.ID;
+      await api.delete(`/api/users/${id}`);
+      await fetchUsers(false);
       setModalDelete(false);
     } catch (error) {
       console.error("Erreur suppression utilisateur", error);
@@ -224,6 +233,15 @@ function Users() {
           <button
             onClick={() => {
               setFormErrors({});
+              setForm({
+                name: "",
+                email: "",
+                password: "",
+                role: "Analyste Business",
+                direction: "",
+                tel: "",
+                image: "",
+              });
               setModalAdd(true);
             }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white"
@@ -283,6 +301,7 @@ function Users() {
                 type="text"
                 placeholder="Rechercher..."
                 value={search}
+                autoComplete="off"
                 onChange={(e) => setSearch(e.target.value)}
                 className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none w-40"
               />
@@ -327,7 +346,7 @@ function Users() {
                 <tbody>
                   {filtered.map((user) => (
                     <tr
-                      key={user.id}
+                      key={user.ID || user.id}
                       className="border-t border-gray-100 dark:border-slate-700"
                     >
                       <td className="px-4 py-3">
@@ -446,9 +465,17 @@ function Users() {
                   <input
                     type={field.type}
                     value={form[field.key]}
-                    onChange={(e) =>
-                      setForm({ ...form, [field.key]: e.target.value })
+                    autoComplete={
+                      field.key === "password"
+                        ? "new-password"
+                        : field.key === "email"
+                          ? "off"
+                          : "off"
                     }
+                    onChange={(e) => {
+                      setForm({ ...form, [field.key]: e.target.value });
+                      setFormErrors({ ...formErrors, [field.key]: "" });
+                    }}
                     className={`w-full text-xs px-3 py-2 rounded-lg border bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none ${formErrors[field.key] ? "border-red-400" : "border-gray-200 dark:border-slate-600"}`}
                   />
                   {formErrors[field.key] && (
@@ -521,13 +548,9 @@ function Users() {
                   key: "password",
                   type: "password",
                 },
-                { label: "Téléphone", key: "telephone", type: "text" },
-                {
-                  label: "Date de naissance",
-                  key: "date_naissance",
-                  type: "date",
-                },
-                { label: "Poste", key: "poste", type: "text" },
+                { label: "Téléphone", key: "tel", type: "text" },
+                { label: "Direction", key: "direction", type: "text" },
+                { label: "Image (URL)", key: "image", type: "text" },
               ].map((field) => (
                 <div key={field.key}>
                   <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
@@ -548,19 +571,7 @@ function Users() {
                   />
                 </div>
               ))}
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
-                  Adresse
-                </label>
-                <input
-                  type="text"
-                  value={form.adresse}
-                  onChange={(e) =>
-                    setForm({ ...form, adresse: e.target.value })
-                  }
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200 outline-none"
-                />
-              </div>
+
               <div className="col-span-2">
                 <label className="text-xs text-gray-400 dark:text-slate-400 block mb-1">
                   Rôle

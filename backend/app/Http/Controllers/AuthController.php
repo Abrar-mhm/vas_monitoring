@@ -45,4 +45,9 @@ class AuthController extends Controller
             'message' => 'Déconnecté avec succès'
         ]);
     }
+
+    public function profile(Request $request){
+
+        return response()->json($request->user());
+    }
 }

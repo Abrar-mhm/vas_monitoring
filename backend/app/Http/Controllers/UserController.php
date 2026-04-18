@@ -21,10 +21,10 @@ class UserController extends Controller
 {
     $request->validate([
         'name'      => 'required|string',
-        'email'     => 'required|email|unique:users',
+        'email'     => 'required|email|unique:USERS,EMAIL',
         'password'  => 'required|min:8',
-        'role'      => 'required|in:Administrateur,Analyste Business,Analyste Opérationnel',
-        'tel'       => 'nullable|string',
+        'role'      => 'required',
+        'tel'       => 'nullable|unique:USERS,TEL',
         'direction' => 'nullable|string',
         'image'     => 'nullable|string',
     ]);
