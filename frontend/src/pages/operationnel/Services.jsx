@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import SidebarOperationnel from "../../components/SidebarOperationnel";
 import api from "../../api/axios";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
 
 function Services() {
   const { dark } = useTheme();
@@ -48,6 +51,31 @@ function Services() {
     } catch (error) {
       console.error("Erreur chargement fournisseurs", error);
     }
+  };
+
+  const handleExportExcel = () => {
+    const data = services.map((s) => ({
+      ID: s.ID,
+      Fournisseur: s.NOM_FOURNISSEUR,
+      Service: s.NOM_SERVICE,
+      "Numéro court": s.NUMERO_COURT,
+      Keyword: s.KEYWORD,
+      Type: s.TYPE,
+      "Prix (DT)": s.PRIX,
+      Statut: s.ACTIF === 1 ? "Actif" : "Inactif",
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(
+      data.length > 0 ? data : [{ "Aucune donnée": "" }],
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Services SMS+");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    saveAs(blob, `Services_SMS_${date}.xlsx`);
   };
 
   const validate = () => {
@@ -289,27 +317,48 @@ function Services() {
               {services.length} services enregistrés
             </p>
           </div>
-          <button
-            onClick={() => {
-              setFormErrors({});
-              setModalAdd(true);
-            }}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white"
-            style={{ background: "#0066CC" }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
+          <div className="flex gap-2">
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white"
+              style={{ background: "#16a34a" }}
             >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Ajouter service
-          </button>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Exporter Excel
+            </button>
+            <button
+              onClick={() => {
+                setFormErrors({});
+                setModalAdd(true);
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white"
+              style={{ background: "#0066CC" }}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Ajouter service
+            </button>
+          </div>
         </div>
 
         <div className="p-5 flex-1 overflow-auto">
